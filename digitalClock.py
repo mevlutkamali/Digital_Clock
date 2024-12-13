@@ -1,75 +1,81 @@
 
 import time
-from tkinter import Label, Tk, Button
+import threading
+from cProfile import label
+from tkinter import Tk, Label, Button, Entry, messagebox
 
-current_format = "24"
+def digitalClock():
+    # Clock.
+    timeInfo = time.strftime("%H:%M:%S")
+    label.config(text=timeInfo)
+    # Date.
+    dateInfo =time.strftime("%d / %B / %Y")
+    dateLabel.config(text=dateInfo)
 
-app_window = Tk()
-app_window.title("Digital Clock")
-app_window.configure(bg="gray")
-app_window.geometry("300x150")
-app_window.resizable(0, 0)
+    if alarmTime and timeInfo == alarmTime:
+        triggerAlarm()
 
-background = "gray"
+    # Clock update.
+    label.after(200, digitalClock)
+
+def triggerAlarm():
+    global alarmTriggered
+
+    if not alarmTriggered:
+        alarmTriggered = True
+        messagebox.showinfo("ALARM", "Alarm Zamanı Geldi")
+
+def digitalAlarm():
+    global alarmTime, alarmTriggered
+
+    alarmTime = alarmEntry.get()
+    alarmTriggered = False
+
+    if not alarmTime:
+        messagebox.showerror("HATA","Lütfen geçerli formatta değer giriniz.")
+        return
+
+    try:
+        time.strptime(alarmTime, "%H:%M:%S")
+        messagebox.showinfo("ALARM KURULDU", f"Alarm Saati : {alarmTime}")
+
+    except ValueError:
+        messagebox.showerror("HATA", "Saat formatı geçersiz. Lütfen HH:MM:SS formatında girin.")
+
+alarmTime = None
+alarmTriggered = None
+
+appWindow = Tk()
+appWindow.title("Dijital Saat")
+appWindow.configure(bg="gray")
+appWindow.geometry("700x260")
+appWindow.resizable(0, 0)
+
+borderWidht = 10
 foreground = "white"
-text_font = ("Boulder", 18, 'bold')
-border_widht = 20
+background = "gray"
+textFont = ("Boulder", 36, "bold")
 
-clock_label = Label(app_window, font=text_font, bg=background, fg=foreground)
-clock_label.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+appWindow.grid_rowconfigure(0, weight=1)
+appWindow.grid_rowconfigure(1, weight=1)
+appWindow.grid_rowconfigure(2, weight=1)
+appWindow.grid_columnconfigure(0, weight=1)
+appWindow.grid_columnconfigure(1, weight=1)
+appWindow.grid_columnconfigure(2, weight=1)
 
-date_label = Label(app_window, font=text_font, bg=background, fg=foreground)
-date_label.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+label = Label(appWindow, bd=borderWidht, fg=foreground, bg=background, font=textFont)
+label.grid(row=0, column=1, padx=10, pady=10)
 
-def timeClock():
-    global current_format
-    if current_format == "24":
-        time_clock = time.strftime("%H:%M:%S")
-    else:
-        time_clock = time.strftime("%I:%M:%S %p")
-    clock_label.config(text=time_clock)
+dateLabel = Label(appWindow, bd=borderWidht, fg=foreground, bg=background, font=textFont)
+dateLabel.grid(row=1, column=1, padx=10, pady=10)
 
-    dateInfo = time.strftime("%d %B %Y")
-    date_label.config(text=dateInfo)
+alarmEntry = Entry(appWindow, bd=borderWidht, fg="black", bg="white", font=("Arial", 14), width=10)
+alarmEntry.grid(row=2, column=1, padx=10, pady=10)
 
-    clock_label.after(1000, timeClock)
+alarmButton = Button(appWindow, text="Alarm Kur", command=digitalAlarm, bd=borderWidht, fg=foreground, bg=background, font=("Arial", 14))
+alarmButton.grid(row=2, column=2, padx=10, pady=10)
 
-def timeMode():
-    time_mode = int(time.strftime("%H"))
+digitalClock()
+appWindow.mainloop()
 
-    if time_mode >= 18 or time_mode < 6:
-        app_window.configure(bg="black")
-        clock_label.config(bg="black", fg="white")
-        date_label.config(bg="black", fg="white")
-    else:
-        app_window.configure(bg="white")
-        clock_label.config(bg="white", fg="black")
-        date_label.config(bg="white", fg="black")
-
-    clock_label.after(1000, timeMode)
-
-def toogleFormat():
-    global current_format
-
-    if current_format == "24":
-        current_format = "12"
-    else:
-        current_format = "24"
-
-    timeClock()
-
-format_button = Button(app_window, text="Toggle Format", command=toogleFormat, font=("Arial", 12))
-format_button.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
-
-app_window.grid_rowconfigure(0, weight=1)
-app_window.grid_rowconfigure(1, weight=1)
-app_window.grid_rowconfigure(2, weight=1)
-
-app_window.grid_columnconfigure(0, weight=1)
-app_window.grid_columnconfigure(1, weight=1)
-app_window.grid_columnconfigure(2, weight=1)
-
-timeClock()
-timeMode()
-
-app_window.mainloop()
+print("Finish")
